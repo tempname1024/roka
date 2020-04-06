@@ -65,17 +65,19 @@ def get_books(root_path):
             attr = dict()
             attr['path'] = file_path
             attr['duration'] = tag.duration
-            if tag.title:
+            if tag.title and not tag.title.isspace():
                 attr['title'] = tag.title
             else:
-                attr['title'] = file_path.split('/')[-1]
-            if tag.album:
+                attr['title'] = os.path.split(file_path)[1]
+
+            if tag.album and not tag.album.isspace():
                 attr['album'] = tag.album
                 book['title'] = tag.album
             else:
-                attr['album'] = book_path.split('/')[-1]
-                book['title'] = book_path.split('/')[-1]
-            if tag.artist:
+                attr['album'] = os.path.split(book_path)[1]
+                book['title'] = os.path.split(book_path)[1]
+
+            if tag.artist and not tag.artist.isspace():
                 attr['author'] = tag.artist
                 book['author'] = tag.artist
             else:
