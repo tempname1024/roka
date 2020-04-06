@@ -1,0 +1,35 @@
+audiobook-rss: stream directory of audiobooks to podcasting apps via RSS
+
+installation
+------------
+a) copy and populate app.cfg and uwsgi.ini (if using UWSGI)
+
+b) create venv, install flask and uwsgi
+
+c) execute rebuild.py to populate audiobook JSON cache
+
+d) execute uwsgi.sh to start the server
+
+design decisions
+----------------
+1. directories contained within config:ROOT_PATH are marked as audiobooks if and
+   only if they contain at least one MP3 file
+
+2. audiobooks are uniquely identifiable by the collective hash of each MP3 file
+   contained in the audiobook directory.
+
+     pro: if the directory structure is changed or files are moved, RSS/download
+     link integrity is maintained, preserve app-side listening progress and
+     history
+
+     con: each MP3 file is hashed, which can be slow on spinning rust w/ large
+     collections
+
+3. XML pubDate and list order is derived from MP3 track attributes; if not
+   present or duplicates exist, tracks are sorted alphanumerically
+
+4. partial content handling (HTTP 206) implemented to satisfy podcasting apps
+   which require valid responses to Range requests (e.g. Apple podcasts)
+
+5. no rebuild endpoint exists; cache-affecting routines are run externally via
+   rebuild.py

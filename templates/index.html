@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audiobooks</title>
+    <meta charset="utf-8">
+    <style>
+        table {
+            font-family: arila, sans-serif;
+            border-collapse: collapse; width: 100%;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+    <h2>Audiobooks</h2>
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Path</th>
+            <th>Tracks</th>
+            <th>Duration</th>
+            <th>Size</th>
+        </tr>
+        {% for b, v in books.items() %}
+        <tr>
+            <td><a href="?a={{ b }}">{{ v['title'] }}</a></td>
+            <td>{{ v['path'] }}</td>
+            <td>{{ v['files']|length }}</td>
+            <td>{{ v['duration_str'] }}</td>
+            <td>{{ v['size_str'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

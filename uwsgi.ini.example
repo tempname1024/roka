@@ -1,0 +1,7 @@
+[uwsgi]
+http      = 127.0.0.1:8085
+processes = 1
+threads   = 1
+wsgi-file = run.py
+callable  = app
+master    = true
