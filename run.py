@@ -9,6 +9,7 @@ from collections import OrderedDict
 from operator import getitem
 from datetime import date, timedelta
 from flask import Flask, request, Response, render_template, send_file
+from xml.dom import minidom
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
@@ -39,6 +40,15 @@ def check_auth(username, password):
            password == app.config['PASSWORD'])
 
     return ret
+
+def xml_prettify(elem):
+    '''
+    Make our XML response human-readable
+    '''
+    xml_str = ET.tostring(elem, encoding='utf8', method='xml')
+    xml_dom = minidom.parseString(xml_str)
+
+    return xml_dom.toprettyxml(indent='  ')
 
 @app.route('/')
 def list_books():
@@ -181,10 +191,7 @@ def list_books():
             }
             ET.SubElement(item, 'enclosure', enc_attr)
 
-        return Response(
-            ET.tostring(rss, encoding='utf8', method='xml'),
-            mimetype='text/xml'
-        )
+        return Response(xml_prettify(rss), mimetype='text/xml')
     else:
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password):
