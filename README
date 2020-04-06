@@ -18,7 +18,7 @@ design decisions
    only if they contain at least one MP3 file
 
 2. audiobooks are uniquely identifiable by the collective hash of each MP3 file
-   contained in the audiobook directory.
+   contained in the audiobook directory
 
      pro: if the directory structure is changed or files are moved, RSS/download
      link integrity is maintained, preserve app-side listening progress and
