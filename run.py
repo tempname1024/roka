@@ -5,6 +5,8 @@ import mimetypes
 import os
 import re
 import xml.etree.cElementTree as ET
+from collections import OrderedDict
+from operator import getitem
 from datetime import date, timedelta
 from flask import Flask, request, Response, render_template, send_file
 
@@ -14,11 +16,16 @@ app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
 cache_path = os.path.join(abs_path, 'cache')
 json_path = os.path.join(cache_path, 'audiobooks.json')
 
-# populate books object from JSON cache
+# populate books object from JSON cache sorted by title
 if os.path.exists(json_path):
     try:
         with open(json_path, 'r') as cache:
             books = json.load(cache)
+        books = OrderedDict(sorted(
+            books.items(),
+            key=lambda x: x[1]['title']
+        ))
+
     except Exception:
         raise ValueError('error loading JSON cache')
 else:
