@@ -2,6 +2,7 @@ audiobook-rss: stream directory of audiobooks to podcasting apps via RSS
 
 installation
 ------------
+
 a) copy and populate app.cfg and uwsgi.ini (if using UWSGI)
 
 b) create venv, install flask and uwsgi
@@ -12,6 +13,7 @@ d) execute uwsgi.sh to start the server
 
 design decisions
 ----------------
+
 1. directories contained within config:ROOT_PATH are marked as audiobooks if and
    only if they contain at least one MP3 file
 
