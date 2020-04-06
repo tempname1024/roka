@@ -40,6 +40,17 @@ def check_auth(username, password):
 
     return ret
 
+def escape(s):
+    '''
+    Ensure XML-safety of attribute values
+    '''
+    s = s.replace('&', '&amp;')
+    s = s.replace('<', '&lt;')
+    s = s.replace('>', '&gt;')
+    s = s.replace('\'', '&quot;')
+
+    return s
+
 @app.route('/')
 def list_books():
     '''
@@ -148,10 +159,10 @@ def list_books():
             item = ET.SubElement(channel, 'item')
 
             title = ET.SubElement(item, 'title')
-            title.text = books[a]['files'][f]['title']
+            title.text = escape(books[a]['files'][f]['title'])
 
             author = ET.SubElement(item, 'itunes:author')
-            author.text = books[a]['files'][f]['author']
+            author.text = escape(books[a]['files'][f]['author'])
 
             category = ET.SubElement(item, 'itunes:category')
             category.text = 'Book'
