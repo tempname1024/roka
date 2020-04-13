@@ -24,7 +24,7 @@ design decisions
    contained in the audiobook directory
 
      pro: if the directory structure is changed or files are moved, RSS/download
-     link integrity is maintained, preserve app-side listening progress and
+     link integrity is maintained, preserving app-side listening progress and
      history
 
      con: each MP3 file is hashed, which can be slow on spinning rust w/ large
