@@ -71,53 +71,7 @@ def list_books():
 
         f_path = books[a]['files'][f]['path']
 
-        # ship the whole file if we don't receive a Range header
-        range_header = request.headers.get('Range', None)
-        if not range_header:
-            return send_file(
-                f_path,
-                mimetype=mimetypes.guess_type(f_path)[0]
-            )
-
-        # partial request handling--certain podcast apps (iOS) and browsers
-        # (Safari) require correct replies to Range requests; if we serve the
-        # entire file, we're treated like a stream (no seek, duration...)
-        size = books[a]['files'][f]['size_bytes']
-
-        # if no lower bound provided, start at beginning
-        byte1, byte2 = 0, None
-        m = re.search(r'(\d+)-(\d*)', range_header)
-        g = m.groups()
-        if g[0]:
-            byte1 = int(g[0])
-        if g[1]:
-            byte2 = int(g[1])
-
-        # if no upper bound provided, serve rest of file
-        length = size - byte1
-        if byte2 is not None:
-            length = byte2 - byte1
-
-        # read file at byte1 for length
-        data = None
-        with open(f_path, 'rb') as f:
-            f.seek(byte1)
-            data = f.read(length)
-
-        # create response with partial data, populate Content-Range
-        response = Response(
-            data,
-            206,
-            mimetype=mimetypes.guess_type(f_path)[0],
-            direct_passthrough=True
-        )
-        response.headers.add(
-            'Content-Range',
-            'bytes {0}-{1}/{2}'.format(byte1, byte1 + length, size)
-        )
-        response.headers.add('Accept-Ranges', 'bytes')
-
-        return response
+        return send_file(f_path, conditional=True)
 
     # serve up audiobook RSS feed; only audiobook hash provided
     elif a:
