@@ -41,8 +41,18 @@ def get_books(root_path):
         # a book_path is only a book if it contains at least one MP3
         for f in os.listdir(book_path):
             file_path = os.path.join(book_path, f)
+
+            # must be MP3 file, ignore anything else
             if not os.path.isfile(file_path) or not f.endswith('.mp3'):
                 continue
+
+            # skip if no duration attribute (required)
+            tag = TinyTag.get(file_path)
+            if not tag.duration:
+                continue
+
+            # previous conditions met, we're a book! :D
+            is_book = True
 
             # update folder hash with MD5 of current file
             BLOCK = 1024
@@ -55,49 +65,48 @@ def get_books(root_path):
                     folder_hash.update(data)
                     file_hash.update(data)
 
-            # skip if no duration attribute (required)
-            tag = TinyTag.get(file_path)
-            if not tag.duration:
-                continue
-            is_book = True
+            # populate per-file and book attribute
+            mp3 = dict()
+            mp3['path'] = file_path
+            mp3['duration'] = tag.duration
 
-            # populate file-specific attributes
-            attr = dict()
-            attr['path'] = file_path
-            attr['duration'] = tag.duration
+            # attribute values must be populated and non-space
             if tag.title and not tag.title.isspace():
-                attr['title'] = tag.title
+                mp3['title'] = tag.title
             else:
-                attr['title'] = os.path.split(file_path)[1]
+                mp3['title'] = os.path.split(file_path)[1]
 
+            # we overwrite existing book title/author in assuming MP3 tags are
+            # consistent between MP3s, perhaps we shouldn't
             if tag.album and not tag.album.isspace():
-                attr['album'] = tag.album
+                mp3['album'] = tag.album
                 book['title'] = tag.album
             else:
-                attr['album'] = os.path.split(book_path)[1]
+                mp3['album'] = os.path.split(book_path)[1]
                 book['title'] = os.path.split(book_path)[1]
 
             if tag.artist and not tag.artist.isspace():
-                attr['author'] = tag.artist
+                mp3['author'] = tag.artist
                 book['author'] = tag.artist
             else:
-                attr['author'] = 'Unknown'
+                mp3['author'] = 'Unknown'
                 book['author'] = 'Unknown'
 
-            attr['duration'] = tag.duration
-            attr['track'] = tag.track
-            attr['size_bytes'] = tag.filesize
+            mp3['duration'] = tag.duration
+            mp3['track'] = tag.track
+            mp3['size_bytes'] = tag.filesize
 
-            duration_str = str(timedelta(seconds=attr['duration']))
-            attr['duration_str'] = duration_str.split('.')[0]
+            duration_str = str(timedelta(seconds=mp3['duration']))
+            mp3['duration_str'] = duration_str.split('.')[0]
 
+            # increment book total size/duration, store MP3
             book['duration'] += tag.duration
-            book['files'][file_hash.hexdigest()] = attr
+            book['files'][file_hash.hexdigest()] = mp3
             book['size_bytes'] += tag.filesize
 
+        # if we're a book, store formatted book size and duration
         if is_book:
             folder_hash = folder_hash.hexdigest()
-
             total_size = book['size_bytes']
             try:
                 _i = int(math.floor(math.log(total_size, 1024)))
