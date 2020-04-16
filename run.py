@@ -102,10 +102,14 @@ def list_books():
         for a_file in books[a]['files']:
             track = books[a]['files'][a_file]['track']
             if not track or track in track_list:
-                key = lambda x: books[a]['files'][x]['title']
+                # remove leading zeros from digits (natural sort)
+                conv = lambda s: [int(x) if x.isdigit() else x.lower() for x in
+                    re.split('(\d+)', s)]
+                key = lambda x: conv(books[a]['files'][x]['title'])
                 break
             track_list.append(track)
         else:
+            # we have populated and unique track values, use those
             key = lambda x: books[a]['files'][x]['track']
 
         # populate XML attribute values required by Apple podcasts
