@@ -69,6 +69,7 @@ def get_books(root_path):
             mp3 = dict()
             mp3['path'] = file_path
             mp3['duration'] = tag.duration
+            mp3['filename'] = os.path.split(file_path)[1]
 
             # attribute values must be populated and non-space
             if tag.title and not tag.title.isspace():

@@ -135,7 +135,7 @@ def list_books():
                 # remove leading zeros from digits (natural sort)
                 conv = lambda s: [int(x) if x.isdigit() else x.lower() for x in
                     re.split('(\d+)', s)]
-                key = lambda x: conv(books[a]['files'][x]['title'])
+                key = lambda x: conv(books[a]['files'][x]['filename'])
                 break
             track_list.append(track)
         else:
