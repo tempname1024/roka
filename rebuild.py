@@ -8,12 +8,21 @@ from datetime import timedelta
 from flask import Flask
 from lib.tinytag import TinyTag
 
-def get_books(root_path):
+def get_books(root_path, cache=None):
     '''
     Discover audiobooks under :root_path: and populate books object
+
+    :cache: existing JSON cache, used to determine which content is new
+            (existing content is not re-hashed)
     '''
     if not os.path.exists(root_path):
         raise ValueError('root path does not exist: %s' % root_path)
+
+    # '/home/user/audiobooks/book': d815c7a3cc11f08558b4d91ca93de023
+    cached = {}
+    if cache:
+        for k, _ in cache.items():
+            cached[cache[k]['path']] = k
 
     SIZES = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
     _books = dict()
@@ -24,6 +33,12 @@ def get_books(root_path):
 
     for book_path in book_dirs:
         print('[+] processing: %s' % book_path)
+
+        # if already cached, populate _books with existing k/v
+        if book_path in cached:
+            _hash = cached[book_path]
+            _books[_hash] = cache[_hash]
+            continue
 
         # initial set of attributes to be populated
         book = {
@@ -138,6 +153,12 @@ def write_cache(books, json_path):
     with open(json_path, 'w') as f:
         json.dump(books, f, indent=4)
 
+def read_cache(json_path):
+    with open(json_path, 'r') as cache:
+        books = json.load(cache)
+
+    return books
+
 if __name__ == '__main__':
     ABS_PATH = os.path.dirname(os.path.abspath(__file__))
     CACHE_PATH = os.path.join(ABS_PATH, 'cache')
@@ -147,5 +168,10 @@ if __name__ == '__main__':
     APP = Flask(__name__)
     APP.config.from_pyfile(os.path.join(ABS_PATH, 'app.cfg'))
 
-    BOOKS = get_books(APP.config['ROOT_PATH'])
+    if os.path.exists(CACHE_PATH):
+        cache = read_cache(JSON_PATH)
+        BOOKS = get_books(APP.config['ROOT_PATH'], cache)
+    else:
+        BOOKS = get_books(APP.config['ROOT_PATH'])
+
     write_cache(BOOKS, JSON_PATH)
