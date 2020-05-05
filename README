@@ -33,5 +33,9 @@ design decisions
 3. XML pubDate and list order is derived from MP3 track attributes; if not
    present or duplicates exist, tracks are sorted alphanumerically
 
+   if a book's track numbers are unique but incorrect, a preference for filename
+   sort can be established by creating an 'ignore_tracknum' file in the
+   audiobook's path
+
 4. no rebuild endpoint exists; cache-affecting routines are run externally via
    rebuild.py

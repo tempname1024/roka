@@ -127,20 +127,28 @@ def list_books():
         book_title = ET.SubElement(channel, 'title')
         book_title.text = escape(books[a]['title'])
 
-        # sort by track number, alphanumerically if track is absent
-        track_list = [] # account for duplicates
-        for a_file in books[a]['files']:
-            track = books[a]['files'][a_file]['track']
-            if not track or track in track_list:
-                # remove leading zeros from digits (natural sort)
-                conv = lambda s: [int(x) if x.isdigit() else x.lower() for x in
-                    re.split('(\d+)', s)]
-                key = lambda x: conv(books[a]['files'][x]['filename'])
-                break
-            track_list.append(track)
+        # use filename sort if ignore_tracknum file present in book dir
+        ignore_tracknum = os.path.join(books[a]['path'], 'ignore_tracknum')
+        if os.path.exists(ignore_tracknum):
+            # remove leading zeros from digits (natural sort)
+            conv = lambda s: [int(x) if x.isdigit() else x.lower() for x in
+                re.split('(\d+)', s)]
+            key = lambda x: conv(books[a]['files'][x]['filename'])
         else:
-            # we have populated and unique track values, use those
-            key = lambda x: books[a]['files'][x]['track']
+            # sort by track number, alphanumerically if track is absent
+            track_list = [] # account for duplicates
+            for a_file in books[a]['files']:
+                track = books[a]['files'][a_file]['track']
+                if not track or track in track_list:
+                    # remove leading zeros from digits (natural sort)
+                    conv = lambda s: [int(x) if x.isdigit() else x.lower()
+                            for x in re.split('(\d+)', s)]
+                    key = lambda x: conv(books[a]['files'][x]['filename'])
+                    break
+                track_list.append(track)
+            else:
+                # we have populated and unique track values, use those
+                key = lambda x: books[a]['files'][x]['track']
 
         # populate XML attribute values required by Apple podcasts
         for idx, f in enumerate(sorted(books[a]['files'], key=key)):
