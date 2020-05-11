@@ -24,8 +24,7 @@ def get_books(root_path, cache=None):
         for k, _ in cache.items():
             cached[cache[k]['path']] = k
 
-    SIZES = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
-    _books = dict()
+    books = dict()
     book_dirs = list()
     for root, dirs, _ in os.walk(root_path):
         for d in dirs:
@@ -37,111 +36,117 @@ def get_books(root_path, cache=None):
         # if already cached, populate _books with existing k/v
         if book_path in cached:
             _hash = cached[book_path]
-            _books[_hash] = cache[_hash]
+            books[_hash] = cache[_hash]
             continue
 
-        # initial set of attributes to be populated
-        book = {
-            'duration': 0,
-            'path': book_path,
-            'files': dict(),
-            'size_bytes': 0,
-            'size_str': None,
-        }
+        book = is_book(book_path)
+        if book: books[0] = book[1]
 
-        # hash of each file in directory w/ MP3 extension
-        folder_hash = hashlib.md5()
-        is_book = False
+    return books
 
-        # a book_path is only a book if it contains at least one MP3
-        for f in os.listdir(book_path):
-            file_path = os.path.join(book_path, f)
+def is_book(book_path):
+    # initial set of attributes to be populated
+    book = {
+        'duration': 0,
+        'path': book_path,
+        'files': dict(),
+        'size_bytes': 0,
+        'size_str': None,
+    }
 
-            # must be MP3 file, ignore anything else
-            if not os.path.isfile(file_path) or not f.endswith('.mp3'):
-                continue
+    # hash of each file in directory w/ MP3 extension
+    folder_hash = hashlib.md5()
+    is_book = False
 
-            # skip if no duration attribute (required)
-            tag = TinyTag.get(file_path)
-            if not tag.duration:
-                continue
+    # a book_path is only a book if it contains at least one MP3
+    for f in os.listdir(book_path):
+        file_path = os.path.join(book_path, f)
 
-            # previous conditions met, we're a book! :D
-            is_book = True
+        # must be MP3 file, ignore anything else
+        if not os.path.isfile(file_path) or not f.endswith('.mp3'):
+            continue
 
-            # update folder hash with MD5 of current file
-            BLOCK = 1024
-            file_hash = hashlib.md5()
-            with open(file_path, 'rb') as f:
-                while True:
-                    data = f.read(BLOCK)
-                    if not data:
-                        break
-                    folder_hash.update(data)
-                    file_hash.update(data)
+        # skip if no duration attribute (required)
+        tag = TinyTag.get(file_path)
+        if not tag.duration:
+            continue
 
-            # populate per-file and book attribute
-            mp3 = dict()
-            mp3['path'] = file_path
-            mp3['duration'] = tag.duration
-            mp3['filename'] = os.path.split(file_path)[1]
+        # previous conditions met, we're a book! :D
+        is_book = True
 
-            # attribute values must be populated and non-space
-            if tag.title and not tag.title.isspace():
-                mp3['title'] = tag.title
-            else:
-                mp3['title'] = os.path.split(file_path)[1]
+        # update folder hash with MD5 of current file
+        BLOCK = 1024
+        file_hash = hashlib.md5()
+        with open(file_path, 'rb') as f:
+            while True:
+                data = f.read(BLOCK)
+                if not data:
+                    break
+                folder_hash.update(data)
+                file_hash.update(data)
 
-            # we overwrite existing book title/author in assuming MP3 tags are
-            # consistent between MP3s, perhaps we shouldn't
-            if tag.album and not tag.album.isspace():
-                mp3['album'] = tag.album
-                book['title'] = tag.album
-            else:
-                mp3['album'] = os.path.split(book_path)[1]
-                book['title'] = os.path.split(book_path)[1]
+        # populate per-file and book attribute
+        mp3 = dict()
+        mp3['path'] = file_path
+        mp3['duration'] = tag.duration
+        mp3['filename'] = os.path.split(file_path)[1]
 
-            if tag.artist and not tag.artist.isspace():
-                mp3['author'] = tag.artist
-                book['author'] = tag.artist
-            else:
-                mp3['author'] = 'Unknown'
-                book['author'] = 'Unknown'
+        # attribute values must be populated and non-space
+        if tag.title and not tag.title.isspace():
+            mp3['title'] = tag.title
+        else:
+            mp3['title'] = os.path.split(file_path)[1]
 
-            mp3['duration'] = tag.duration
-            mp3['track'] = tag.track
-            mp3['size_bytes'] = tag.filesize
+        # we overwrite existing book title/author in assuming MP3 tags are
+        # consistent between MP3s, perhaps we shouldn't
+        if tag.album and not tag.album.isspace():
+            mp3['album'] = tag.album
+            book['title'] = tag.album
+        else:
+            mp3['album'] = os.path.split(book_path)[1]
+            book['title'] = os.path.split(book_path)[1]
 
-            duration_str = str(timedelta(seconds=mp3['duration']))
-            mp3['duration_str'] = duration_str.split('.')[0]
+        if tag.artist and not tag.artist.isspace():
+            mp3['author'] = tag.artist
+            book['author'] = tag.artist
+        else:
+            mp3['author'] = 'Unknown'
+            book['author'] = 'Unknown'
 
-            # increment book total size/duration, store MP3
-            book['duration'] += tag.duration
-            book['files'][file_hash.hexdigest()] = mp3
-            book['size_bytes'] += tag.filesize
+        mp3['duration'] = tag.duration
+        mp3['track'] = tag.track
+        mp3['size_bytes'] = tag.filesize
 
-        # if we're a book, store formatted book size and duration
-        if is_book:
-            folder_hash = folder_hash.hexdigest()
-            total_size = book['size_bytes']
-            try:
-                _i = int(math.floor(math.log(total_size, 1024)))
-                _p = math.pow(1024, _i)
-                _s = round(total_size / _p, 2)
-            except:
-                _i = 1
-                _s = 0
+        duration_str = str(timedelta(seconds=mp3['duration']))
+        mp3['duration_str'] = duration_str.split('.')[0]
 
-            # e.g. 1.48 GB
-            book['size_str'] = '%s %s' % (str(_s), SIZES[_i])
+        # increment book total size/duration, store MP3
+        book['duration'] += tag.duration
+        book['files'][file_hash.hexdigest()] = mp3
+        book['size_bytes'] += tag.filesize
 
-            # e.g. 2 days, 5:47:47
-            duration_str = str(timedelta(seconds=book['duration']))
-            book['duration_str'] = duration_str.split('.')[0]
+    # if we're a book, store formatted book size and duration
+    if is_book:
+        folder_hash = folder_hash.hexdigest()
+        total_size = book['size_bytes']
+        try:
+            _i = int(math.floor(math.log(total_size, 1024)))
+            _p = math.pow(1024, _i)
+            _s = round(total_size / _p, 2)
+        except:
+            _i = 1
+            _s = 0
 
-            _books[folder_hash] = book
+        # e.g. 1.48 GB
+        SIZES = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+        book['size_str'] = '%s %s' % (str(_s), SIZES[_i])
 
-    return _books
+        # e.g. 2 days, 5:47:47
+        duration_str = str(timedelta(seconds=book['duration']))
+        book['duration_str'] = duration_str.split('.')[0]
+        return (folder_hash, book)
+
+    return False
 
 def write_cache(books, json_path):
     '''
