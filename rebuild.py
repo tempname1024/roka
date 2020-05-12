@@ -40,7 +40,7 @@ def get_books(root_path, cache=None):
             continue
 
         book = is_book(book_path)
-        if book: books[0] = book[1]
+        if book: books[book[0]] = book[1]
 
     return books
 
@@ -173,9 +173,9 @@ if __name__ == '__main__':
     APP = Flask(__name__)
     APP.config.from_pyfile(os.path.join(ABS_PATH, 'app.cfg'))
 
-    if os.path.exists(CACHE_PATH):
+    if os.path.exists(JSON_PATH):
         cache = read_cache(JSON_PATH)
-        BOOKS = get_books(APP.config['ROOT_PATH'], cache)
+        BOOKS = get_books(APP.config['ROOT_PATH'], JSON_PATH)
     else:
         BOOKS = get_books(APP.config['ROOT_PATH'])
 
