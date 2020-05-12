@@ -175,7 +175,7 @@ if __name__ == '__main__':
 
     if os.path.exists(JSON_PATH):
         cache = read_cache(JSON_PATH)
-        BOOKS = get_books(APP.config['ROOT_PATH'], JSON_PATH)
+        BOOKS = get_books(APP.config['ROOT_PATH'], cache)
     else:
         BOOKS = get_books(APP.config['ROOT_PATH'])
 
