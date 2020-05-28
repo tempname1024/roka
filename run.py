@@ -10,6 +10,7 @@ from collections import OrderedDict
 from operator import getitem
 from datetime import date, timedelta
 from flask import Flask, request, Response, render_template, send_file
+from xml.dom import minidom
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
@@ -17,20 +18,24 @@ app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
 cache_path = os.path.join(abs_path, 'cache')
 json_path = os.path.join(cache_path, 'audiobooks.json')
 
-# populate books object from JSON cache sorted by title
-if os.path.exists(json_path):
-    try:
-        with open(json_path, 'r') as cache:
-            books = json.load(cache)
-        books = OrderedDict(sorted(
-            books.items(),
-            key=lambda x: x[1]['title']
-        ))
+def read_cache(json_path):
+    '''
+    Populate books dict from cache at :json_path:
+    '''
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, 'r') as cache:
+                books = json.load(cache)
+            books = OrderedDict(sorted(
+                books.items(),
+                key=lambda x: x[1]['title']
+            ))
+        except Exception:
+            raise ValueError('error loading JSON cache')
+    else:
+        raise ValueError('cache not found, run rebuild.py')
 
-    except Exception:
-        raise ValueError('error loading JSON cache')
-else:
-    raise ValueError('cache not found, run rebuild.py')
+    return books
 
 def check_auth(username, password):
     '''
@@ -58,7 +63,8 @@ def escape(s):
         (0x7F, 0x84),
         (0x86, 0x9F),
         (0xFDD0, 0xFDDF),
-        (0xFFFE, 0xFFFF)
+        (0xFFFE, 0xFFFF),
+        (0xA9, 0xA9)
     ]
 
     if sys.maxunicode >= 0x10000:
@@ -81,6 +87,14 @@ def escape(s):
 
     return s
 
+def prettify(elem):
+    '''
+    Make our RSS feed picturesque :)
+    '''
+    xml_str = ET.tostring(elem, encoding='utf8', method='xml')
+    xml_dom = minidom.parseString(xml_str)
+    return xml_dom.toprettyxml(indent='  ')
+
 @app.route('/')
 def list_books():
     '''
@@ -91,6 +105,8 @@ def list_books():
 
     Listing of audiobooks returned if no params provided
     '''
+    books = read_cache(json_path)
+
     a = request.args.get('a') # audiobook hash
     f = request.args.get('f') # file hash
 
@@ -175,7 +191,7 @@ def list_books():
             duration = ET.SubElement(item, 'itunes:duration')
             duration.text = str(books[a]['files'][f]['duration_str'])
 
-            guid = ET.SubElement(item, 'guid')
+            guid = ET.SubElement(item, 'guid', isPermaLink='false')
             guid.text = f # file hash
 
             # pubDate descending, day decremented w/ each iteration
@@ -188,10 +204,7 @@ def list_books():
             }
             ET.SubElement(item, 'enclosure', enc_attr)
 
-        return Response(
-            ET.tostring(rss, encoding='utf8', method='xml'),
-            mimetype='text/xml'
-        )
+        return Response(prettify(rss), mimetype='text/xml')
     else:
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password):
