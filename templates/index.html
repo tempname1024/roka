@@ -3,27 +3,12 @@
 <head>
     <title>Audiobooks</title>
     <meta charset="utf-8">
-    <style>
-        table {
-            font-family: arila, sans-serif;
-            border-collapse: collapse; width: 100%;
-            width: 100%;
-        }
-
-        td, th {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px;
-        }
-
-        tr:nth-child(even) {
-            background-color: #dddddd;
-        }
-    </style>
+    <link href="static/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+    <div class="container">
     <h2>Audiobooks</h2>
-    <table>
+    <table class="table table-condensed">
         <tr>
             <th>Title</th>
             <th>Path</th>
@@ -41,5 +26,6 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
 </body>
 </html>

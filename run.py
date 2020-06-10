@@ -10,6 +10,7 @@ from collections import OrderedDict
 from operator import getitem
 from datetime import date, timedelta
 from flask import Flask, request, Response, render_template, send_file
+from flask import send_from_directory
 from xml.dom import minidom
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -198,7 +199,7 @@ def list_books():
             pub_date = ET.SubElement(item, 'pubDate')
             pub_date.text = (date(2000, 12, 31) - timedelta(days=idx)).ctime()
             enc_attr = {
-                'url': '{}?a={}&f={}'.format( request.base_url, a, f),
+                'url': '{}?a={}&f={}'.format(request.base_url, a, f),
                 'length': str(books[a]['files'][f]['size_bytes']),
                 'type': 'audio/mpeg'
             }
@@ -211,6 +212,13 @@ def list_books():
             form = {'WWW-Authenticate': 'Basic realm="o/"'}
             return Response('unauthorized', 401, form)
         return render_template('index.html', books=books)
+
+@app.route('/static/<path:path>')
+def send_static(path):
+    '''
+    Serve static files from the static directory
+    '''
+    return send_from_directory('static', path)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port='8085', threaded=True)
