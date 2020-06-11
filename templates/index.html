@@ -6,12 +6,11 @@
     <link href="static/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
+    <div class="container container-fluid">
     <h2>Audiobooks</h2>
-    <table class="table table-condensed">
+    <table class="table table-condensed table-bordered table-striped">
         <tr>
             <th>Title</th>
-            <th>Path</th>
             <th>Tracks</th>
             <th>Duration</th>
             <th>Size</th>
@@ -19,7 +18,6 @@
         {% for b, v in books.items() %}
         <tr>
             <td><a href="?a={{ b }}">{{ v['title']|escape }}</a></td>
-            <td>{{ v['path']|escape }}</td>
             <td>{{ v['files']|length }}</td>
             <td>{{ v['duration_str'] }}</td>
             <td>{{ v['size_str'] }}</td>
