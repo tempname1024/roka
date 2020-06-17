@@ -3,7 +3,7 @@
 import os
 from flask import Flask, request, Response, render_template, send_file
 from flask import send_from_directory
-from lib.util import check_auth, escape, generate_rss, prettify, read_cache
+from lib.util import check_auth, escape, generate_rss, read_cache
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
@@ -41,7 +41,7 @@ def list_books():
             return 'book not found', 404
 
         rss = generate_rss(request, books)
-        return Response(prettify(rss), mimetype='text/xml')
+        return Response(rss, mimetype='text/xml')
     else:
         auth = request.authorization
         if not auth or not check_auth(app, auth.username, auth.password):

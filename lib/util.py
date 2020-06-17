@@ -43,7 +43,8 @@ def escape(s):
     s = s.replace('&', '&amp;')
     s = s.replace('<', '&lt;')
     s = s.replace('>', '&gt;')
-    s = s.replace('\'', '&quot;')
+    s = s.replace('\'', '&apos;')
+    s = s.replace('\"', '&quot;')
 
     # https://stackoverflow.com/a/22273639
     illegal_unichrs = [
@@ -76,14 +77,6 @@ def escape(s):
     s = illegal_xml_chars_RE.sub('', s)
 
     return s
-
-def prettify(elem):
-    '''
-    Make our RSS feed picturesque :)
-    '''
-    xml_str = ET.tostring(elem, encoding='utf8', method='xml')
-    xml_dom = minidom.parseString(xml_str)
-    return xml_dom.toprettyxml(indent='  ')
 
 def generate_rss(request, books):
     book = request.args.get('a') # audiobook hash
@@ -168,5 +161,5 @@ def generate_rss(request, books):
         }
         ET.SubElement(item, 'enclosure', enc_attr)
 
-    return rss
+    return ET.tostring(rss, encoding='utf8', method='xml')
 
