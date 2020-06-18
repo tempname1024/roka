@@ -3,14 +3,32 @@
 <head>
     <title>Audiobooks</title>
     <meta charset="utf-8">
-    <link href="static/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Consolas, monospace;
+        }
+        table {
+            border-collapse: collapse; width: 100%;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
     <h2>Audiobooks</h2>
-    <table class="table table-condensed table-bordered table-striped">
+    <table>
         <tr>
             <th>Title</th>
+            <th>Path</th>
             <th>Tracks</th>
             <th>Duration</th>
             <th>Size</th>
@@ -18,12 +36,13 @@
         {% for b, v in books.items() %}
         <tr>
             <td><a href="?a={{ b }}">{{ v['title']|escape }}</a></td>
+            <td>{{ v['path']|escape }}</td>
             <td>{{ v['files']|length }}</td>
             <td>{{ v['duration_str'] }}</td>
             <td>{{ v['size_str'] }}</td>
         </tr>
         {% endfor %}
     </table>
-    </div>
 </body>
 </html>
+

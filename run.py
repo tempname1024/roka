@@ -2,7 +2,6 @@
 
 import os
 from flask import Flask, request, Response, render_template, send_file
-from flask import send_from_directory
 from lib.util import check_auth, escape, generate_rss, read_cache
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -48,13 +47,6 @@ def list_books():
             form = {'WWW-Authenticate': 'Basic realm="o/"'}
             return Response('unauthorized', 401, form)
         return render_template('index.html', books=books)
-
-@app.route('/static/<path:path>')
-def send_static(path):
-    '''
-    Serve static files from the static directory
-    '''
-    return send_from_directory('static', path)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port='8085', threaded=True)
