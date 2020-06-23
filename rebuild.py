@@ -43,6 +43,8 @@ def get_books(root_path, cache=None):
     return books
 
 def is_book(book_path):
+    ext = ['mp3'] # m4b seems to be unsupported by Apple
+
     # book attributes to be populated
     book = {
         'author':       None,
@@ -55,14 +57,16 @@ def is_book(book_path):
         'title':        None
     }
 
-    # hash of each file in directory w/ MP3 extension
+    # hash of each file in directory w/ track extension
     folder_hash = hashlib.md5()
 
-    # a book_path is only a book if it contains at least one MP3
+    # a book_path is only a book if it contains at least one track
     is_book = False
     for f in os.listdir(book_path):
         file_path = os.path.join(book_path, f)
-        if not os.path.isfile(file_path) or not f.endswith('.mp3'):
+        if not os.path.isfile(file_path):
+            continue
+        if not f.split('.')[-1] in ext:
             continue
         tag = TinyTag.get(file_path)
         if not tag.duration:
@@ -83,8 +87,8 @@ def is_book(book_path):
                 folder_hash.update(data)
                 file_hash.update(data)
 
-        # per-MP3 atributes, some values are populated conditionally
-        mp3 = {
+        # per-file atributes, some values are populated conditionally
+        track = {
             'album':        None,
             'author':       None,
             'duration':     tag.duration,
@@ -96,28 +100,28 @@ def is_book(book_path):
             'track':        None
         }
 
-        mp3['album']  = validate(tag.album, os.path.split(book_path)[1])
-        mp3['author'] = validate(tag.artist, 'Unknown')
-        mp3['duration'] = tag.duration
+        track['album']  = validate(tag.album, os.path.split(book_path)[1])
+        track['author'] = validate(tag.artist, 'Unknown')
+        track['duration'] = tag.duration
 
         # 1 day, 10:59:58
-        duration_str = str(timedelta(seconds=mp3['duration']))
-        mp3['duration_str'] = duration_str.split('.')[0]
+        duration_str = str(timedelta(seconds=track['duration']))
+        track['duration_str'] = duration_str.split('.')[0]
 
-        mp3['title']  = validate(tag.title, os.path.split(file_path)[1])
-        mp3['track'] = tag.track
-        mp3['size_bytes'] = tag.filesize
+        track['title']  = validate(tag.title, os.path.split(file_path)[1])
+        track['track'] = tag.track
+        track['size_bytes'] = tag.filesize
 
-        # we assume author and album attributes are unchanged between MP3s
-        book['author'] = mp3['author']
-        book['title'] = mp3['album']
+        # we assume author and album attributes are unchanged between tracks
+        book['author'] = track['author']
+        book['title'] = track['album']
 
         # increment book total size/duration
         book['duration'] += tag.duration
         book['size_bytes'] += tag.filesize
 
-        # hexdigest: MP3 dict
-        book['files'][file_hash.hexdigest()] = mp3
+        # hexdigest: track dict
+        book['files'][file_hash.hexdigest()] = track
 
     # if we're a book, store formatted book size and duration
     if is_book:
