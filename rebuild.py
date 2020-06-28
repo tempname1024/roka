@@ -8,7 +8,7 @@ from datetime import timedelta
 from flask import Flask
 from lib.tinytag import TinyTag
 
-def get_books(root_path, cache=None):
+def get_books(root_path, cache=dict()):
     '''
     Discover audiobooks under :root_path: and populate books object
 
@@ -20,9 +20,10 @@ def get_books(root_path, cache=None):
 
     # '/home/user/audiobooks/book': d815c7a3cc11f08558b4d91ca93de023
     existing_books = {}
-    if cache:
-        for k, _ in cache.items():
-            existing_books[cache[k]['path']] = k
+    for k, _ in cache.items():
+        path = cache[k]['path']
+        if os.path.exists(path):
+            existing_books[path] = k
 
     book_dirs = list()
     for root, dirs, _ in os.walk(root_path):
@@ -62,6 +63,7 @@ def is_book(book_path):
 
     # a book_path is only a book if it contains at least one track
     is_book = False
+
     for f in os.listdir(book_path):
         file_path = os.path.join(book_path, f)
 
@@ -76,7 +78,7 @@ def is_book(book_path):
 
         # previous conditions met, we're a book! :D
         is_book = True
-        print('[+] processing: %s' % book_path)
+        print('[+] processing: %s' % f)
 
         # update collective hash of folder with MD5 of current file
         BLOCK = 1024
