@@ -64,10 +64,12 @@ def is_book(book_path):
     is_book = False
     for f in os.listdir(book_path):
         file_path = os.path.join(book_path, f)
-        if not os.path.isfile(file_path):
+
+        # is a file and has a supported extension
+        if not os.path.isfile(file_path) or not f.split('.')[-1] in ext:
             continue
-        if not f.split('.')[-1] in ext:
-            continue
+
+        # track duration is required
         tag = TinyTag.get(file_path)
         if not tag.duration:
             continue
@@ -87,30 +89,21 @@ def is_book(book_path):
                 folder_hash.update(data)
                 file_hash.update(data)
 
+        # 1 day, 10:59:58
+        duration_str = str(timedelta(seconds=tag.duration))
+
         # per-file atributes, some values are populated conditionally
         track = {
-            'album':        None,
-            'author':       None,
+            'album':        validate(tag.album, os.path.split(book_path)[1]),
+            'author':       validate(tag.artist, 'Unknown'),
             'duration':     tag.duration,
-            'duration_str': None,
+            'duration_str': duration_str.split('.')[0],
             'filename':     os.path.split(file_path)[1],
             'path':         file_path,
-            'size_bytes':   None,
-            'title':        None,
-            'track':        None
+            'size_bytes':   tag.filesize,
+            'title':        validate(tag.title, os.path.split(file_path)[1]),
+            'track':        tag.track
         }
-
-        track['album']  = validate(tag.album, os.path.split(book_path)[1])
-        track['author'] = validate(tag.artist, 'Unknown')
-        track['duration'] = tag.duration
-
-        # 1 day, 10:59:58
-        duration_str = str(timedelta(seconds=track['duration']))
-        track['duration_str'] = duration_str.split('.')[0]
-
-        track['title']  = validate(tag.title, os.path.split(file_path)[1])
-        track['track'] = tag.track
-        track['size_bytes'] = tag.filesize
 
         # we assume author and album attributes are unchanged between tracks
         book['author'] = track['author']
