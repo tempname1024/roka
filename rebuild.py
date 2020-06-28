@@ -44,6 +44,11 @@ def get_books(root_path, cache=dict()):
     return books
 
 def is_book(book_path):
+    '''
+    Determine if :book_path: contains (supported) audio files
+
+    Returns False (not a book) or populated book dict
+    '''
     ext = ['mp3'] # m4b seems to be unsupported by Apple
 
     # book attributes to be populated
@@ -152,6 +157,9 @@ def write_cache(books, json_path):
         json.dump(books, f, indent=4)
 
 def read_cache(json_path):
+    '''
+    Return dict of existing cache
+    '''
     with open(json_path, 'r') as cache:
         books = json.load(cache)
 
@@ -159,10 +167,7 @@ def read_cache(json_path):
 
 def validate(v, b):
     '''
-    Returns :v: if v and v.isspace(), otherwise b
-
-    :v: preferred value
-    :b: backup value
+    Returns :v: if :v: and v.isspace(), otherwise :b:
     '''
     if v and not v.isspace():
         return v
