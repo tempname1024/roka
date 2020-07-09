@@ -31,7 +31,6 @@ def list_books():
             return 'book or file not found', 404
 
         f_path = books[a]['files'][f]['path']
-
         return send_file(f_path, conditional=True)
 
     # serve up audiobook RSS feed; only audiobook hash provided
@@ -41,11 +40,13 @@ def list_books():
 
         rss = generate_rss(request, books)
         return Response(rss, mimetype='text/xml')
+
     else:
         auth = request.authorization
         if not auth or not check_auth(app, auth.username, auth.password):
             form = {'WWW-Authenticate': 'Basic realm="o/"'}
             return Response('unauthorized', 401, form)
+
         return render_template('index.html', books=books)
 
 if __name__ == '__main__':
