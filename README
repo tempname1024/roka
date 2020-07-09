@@ -8,24 +8,6 @@ installation
 
 a) copy and populate app.cfg and uwsgi.ini from examples
 
-        $ cp app.cfg.example app.cfg
-        $ cp uwsgi.ini.example uwsgi.ini
-        $ cat app.cfg
-
-        ROOT_PATH = '/path/to/audiobooks'
-        USERNAME = 'username'
-        PASSWORD = 'password'
-
-        $ cat uwsgi.ini
-
-        [uwsgi]
-        http      = 127.0.0.1:8085
-        processes = 2
-        threads   = 4
-        wsgi-file = run.py
-        callable  = app
-        master    = true
-
 b) install python dependencies flask and uwsgi
 
         $ pip install --user flask uwsgi
