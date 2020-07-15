@@ -19,6 +19,9 @@ APP.config.from_pyfile(os.path.join(ABS_PATH, 'app.cfg'))
 
 class Books:
     def __init__(self):
+        '''
+        Book-related handlers (r/w cache) and track discovery
+        '''
         if os.path.exists(JSON_PATH):
             self._cache = self._read_cache()
         else:
@@ -35,7 +38,6 @@ class Books:
         for root, dirs, _ in os.walk(path):
             for d in dirs:
                 ret.append(os.path.join(root, d))
-
         return ret
 
     def _get_path_hash_dict(self):
@@ -50,7 +52,6 @@ class Books:
             path = self._cache[k]['path']
             if os.path.exists(path):
                 ret[path] = k
-
         return ret
 
     def _write_cache(self):
@@ -68,7 +69,6 @@ class Books:
         '''
         with open(JSON_PATH, 'r') as cache:
             data = json.load(cache)
-
         return data
 
     def _validate(self, v, b):
@@ -77,7 +77,6 @@ class Books:
         '''
         if v and not v.isspace():
             return v
-
         return b
 
     def _log(self, msg):
@@ -106,7 +105,6 @@ class Books:
             book = self._check_dir(path)
             if book:
                 books[book[0]] = book[1]
-
         return books
 
     def _check_dir(self, path):
@@ -129,21 +127,26 @@ class Books:
             'title':        None
         }
 
-        # hash of each file in directory w/ track extension
+        # hash of each supported track in directory path
         folder_hash = hashlib.md5()
 
         for f in os.listdir(path):
+            # must be a file and have a supported extension
             file_path = os.path.join(path, f)
             if not os.path.isfile(file_path) or not f.split('.')[-1] in ext:
                 continue
 
+            # tracks at minimum must have a duration tag (required by podcast
+            # apps)
             tag = TinyTag.get(file_path)
             if not tag.duration:
                 continue
 
+            # previous conditions met, we've found at least one track
             is_book = True
             self._log(f)
 
+            # hash track (used as a key) and update folder hash
             file_hash = hashlib.md5()
             with open(file_path, 'rb') as f:
                 while True:
@@ -180,10 +183,12 @@ class Books:
             # hexdigest: track dict
             book['files'][file_hash.hexdigest()] = track
 
+        # final book processing routine; update total size, duration
         if is_book:
             folder_hash = folder_hash.hexdigest()
             total_size = book['size_bytes']
 
+            # bytes -> readable file size, used in audiobook index
             try:
                 _i = int(math.floor(math.log(total_size, 1024)))
                 _p = math.pow(1024, _i)
