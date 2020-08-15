@@ -130,7 +130,7 @@ class Books:
         # hash of each supported track in directory path
         folder_hash = hashlib.md5()
 
-        for f in os.listdir(path):
+        for f in sorted(os.listdir(path)):
             # must be a file and have a supported extension
             file_path = os.path.join(path, f)
             if not os.path.isfile(file_path) or not f.split('.')[-1] in ext:
