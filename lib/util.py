@@ -153,7 +153,9 @@ def generate_rss(request, books):
 
         # pubDate descending, day decremented w/ each iteration
         pub_date = ET.SubElement(item, 'pubDate')
-        pub_date.text = (date(2000, 12, 31) - timedelta(days=idx)).ctime()
+        pub_format = '%a, %d %b %Y %H:%M:%S %z'
+        pub_date.text = (date(2000, 12, 31) - timedelta(days=idx)).strftime(
+                pub_format)
         enc_attr = {
             'url': '{}?a={}&f={}'.format(request.base_url, book, f),
             'length': str(books[book]['files'][f]['size_bytes']),
