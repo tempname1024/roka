@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
 from flask import Flask, request, Response, render_template, send_file
+from lib.books import Books
 from lib.util import check_auth, escape, generate_rss, read_cache
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -50,4 +52,16 @@ def list_books():
         return render_template('index.html', books=books)
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port='8085', threaded=True)
+    desc = 'roka: listen to audiobooks with podcast apps via RSS'
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('--scan', dest='scan', action='store_true',
+                        help='scan audiobooks directory for new books',
+                        required=False)
+    args = parser.parse_args()
+
+    if args.scan:
+        books = Books()
+        books.scan_books()
+        books.write_cache()
+    else:
+        app.run(host='127.0.0.1', port='8085', threaded=True)

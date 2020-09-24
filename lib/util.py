@@ -23,7 +23,7 @@ def read_cache(json_path):
         except Exception:
             raise ValueError('error loading JSON cache')
     else:
-        raise ValueError('cache not found, run rebuild.py')
+        raise ValueError('cache not found, run ./roka.py --scan')
 
     return books
 

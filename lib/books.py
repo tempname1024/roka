@@ -10,12 +10,12 @@ from flask import Flask
 from lib.tinytag import TinyTag
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
-CACHE_PATH = os.path.join(ABS_PATH, 'cache')
+CACHE_PATH = os.path.join(ABS_PATH, '../', 'cache')
 JSON_PATH = os.path.join(CACHE_PATH, 'audiobooks.json')
 
 # use Flask's config parser, configparser would be hacky
 APP = Flask(__name__)
-APP.config.from_pyfile(os.path.join(ABS_PATH, 'app.cfg'))
+APP.config.from_pyfile(os.path.join(ABS_PATH, '../', 'app.cfg'))
 
 class Books:
     def __init__(self):
@@ -27,9 +27,6 @@ class Books:
         else:
             self._cache = {}
 
-        self.books = self._get_books()
-        self._write_cache()
-
     def _get_dirs(self, path):
         '''
         Return list of directories recursively discovered in :path:
@@ -38,6 +35,7 @@ class Books:
         for root, dirs, _ in os.walk(path):
             for d in dirs:
                 ret.append(os.path.join(root, d))
+
         return ret
 
     def _get_path_hash_dict(self):
@@ -52,9 +50,10 @@ class Books:
             path = self._cache[k]['path']
             if os.path.exists(path):
                 ret[path] = k
+
         return ret
 
-    def _write_cache(self):
+    def write_cache(self):
         '''
         Dump contents of :books: to :json_path:
         '''
@@ -69,6 +68,7 @@ class Books:
         '''
         with open(JSON_PATH, 'r') as cache:
             data = json.load(cache)
+
         return data
 
     def _validate(self, v, b):
@@ -77,6 +77,7 @@ class Books:
         '''
         if v and not v.isspace():
             return v
+
         return b
 
     def _log(self, msg):
@@ -86,7 +87,7 @@ class Books:
         now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         print('%s %s' % (now, msg))
 
-    def _get_books(self):
+    def scan_books(self):
         '''
         Discover audiobooks under :root_path: and populate books object
 
@@ -105,7 +106,8 @@ class Books:
             book = self._check_dir(path)
             if book:
                 books[book[0]] = book[1]
-        return books
+
+        self.books = books
 
     def _check_dir(self, path):
         '''
@@ -204,9 +206,7 @@ class Books:
             # e.g. 2 days, 5:47:47
             duration_str = str(timedelta(seconds=book['duration']))
             book['duration_str'] = duration_str.split('.')[0]
+
             return (folder_hash, book)
 
         return None
-
-if __name__ == '__main__':
-    books = Books()

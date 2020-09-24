@@ -1,7 +1,7 @@
-audiobook-rss: stream directory of audiobooks to podcasting apps via RSS
+roka: stream directory of audiobooks to podcasting apps via RSS
 
-demo (no audio): https://demo.jordan.im/audiobook-rss/
-iOS podcast app: https://demo.jordan.im/audiobook-rss/apple-podcasts.png
+demo (no audio): https://demo.jordan.im/roka/
+iOS podcast app: https://demo.jordan.im/roka/apple-podcasts.png
 
 installation
 ------------
@@ -12,9 +12,10 @@ b) install python dependencies flask and uwsgi
 
         $ pip install --user flask uwsgi
 
-c) execute rebuild.py to populate audiobook JSON cache
+c) run roka.py with --scan to populate audiobook JSON cache (can be re-run to
+   update cache upon download of new books)
 
-        $ ./rebuild.py
+        $ ./roka.py --scan
 
 d) execute uwsgi.sh to start the server
 
