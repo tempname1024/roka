@@ -31,10 +31,9 @@ class Books:
         '''
         Return list of directories recursively discovered in :path:
         '''
-        ret = list()
-        for root, dirs, _ in os.walk(path):
-            for d in dirs:
-                ret.append(os.path.join(root, d))
+        s = os.scandir(path)
+        ret = [x.path for x in s if not x.name.startswith('.') and x.is_dir()]
+        s.close()
 
         return ret
 
