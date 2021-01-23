@@ -134,7 +134,7 @@ class Books:
         for f in sorted(os.listdir(path)):
             # must be a file and have a supported extension
             file_path = os.path.join(path, f)
-            if not os.path.isfile(file_path) or not f.split('.')[-1] in ext:
+            if not os.path.isfile(file_path) or not f.split('.')[-1].lower() in ext:
                 continue
 
             # tracks at minimum must have a duration tag (required by podcast
