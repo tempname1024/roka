@@ -121,7 +121,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.static_path and not args.base_url or args.base_url and not args.static_path:
-        parser.error("--generate and --base_url must both be included")
+        parser.error('--generate and --base_url must be included together')
 
     if args.scan:
         books = Books()
