@@ -35,7 +35,7 @@
         </tr>
         {% for b, v in books.items() %}
         <tr>
-            <td><a href="?a={{ b }}">{{ v['title']|escape }}</a></td>
+            <td><a href="{{'?a=' if not static else '/'}}{{ b }}{{'.xml' if static}}">{{ v['title']|escape }}</a></td>
             <td>{{ v['path']|escape }}</td>
             <td>{{ v['files']|length }}</td>
             <td>{{ v['duration_str'] }}</td>

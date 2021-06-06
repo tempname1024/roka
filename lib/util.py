@@ -78,9 +78,7 @@ def escape(s):
 
     return s
 
-def generate_rss(request, books):
-    book = request.args.get('a') # audiobook hash
-
+def generate_rss(base_url, book, books, static=False):
     # we only make use of the itunes ns, others provided for posterity
     namespaces = {
         'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd',
@@ -156,8 +154,9 @@ def generate_rss(request, books):
         pub_format = '%a, %d %b %Y %H:%M:%S %z'
         pub_date.text = (date(2000, 12, 31) - timedelta(days=idx)).strftime(
                 pub_format)
+        url_format = '{}{}/{}.mp3' if static else '{}?a={}&f={}'
         enc_attr = {
-            'url': '{}?a={}&f={}'.format(request.base_url, book, f),
+            'url': url_format.format(base_url, book, f),
             'length': str(books[book]['files'][f]['size_bytes']),
             'type': 'audio/mpeg'
         }
