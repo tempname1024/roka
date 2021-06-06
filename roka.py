@@ -9,7 +9,8 @@ from lib.util import check_auth, escape, generate_rss, read_cache
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
-app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
+if os.path.exists(os.path.join(abs_path, 'app.cfg')):
+    app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
 cache_path = os.path.join(abs_path, 'cache')
 json_path = os.path.join(cache_path, 'audiobooks.json')
 

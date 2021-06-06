@@ -15,7 +15,8 @@ JSON_PATH = os.path.join(CACHE_PATH, 'audiobooks.json')
 
 # use Flask's config parser, configparser would be hacky
 APP = Flask(__name__)
-APP.config.from_pyfile(os.path.join(ABS_PATH, '../', 'app.cfg'))
+if os.path.exists(os.path.join(ABS_PATH, '../', 'app.cfg')):
+    APP.config.from_pyfile(os.path.join(ABS_PATH, '../', 'app.cfg'))
 
 class Books:
     def __init__(self):
