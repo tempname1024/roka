@@ -72,11 +72,11 @@ def my_render_template(
         app,
     )
 
-def generate(static_path, base_url):
+def generate(static_path, base_url, audiobook_dirs):
     static_index_path = os.path.join(static_path, 'index.html')
 
     books = Books()
-    books.scan_books()
+    books.scan_books(audiobook_dirs)
     # TODO avoid writing and reading cache
     books.write_cache()
     books = read_cache(json_path)
@@ -115,6 +115,9 @@ if __name__ == '__main__':
     parser.add_argument('--base_url', dest='base_url', type=str, action='store',
                         help='Base URL to use in static files',
                         required=False)
+    parser.add_argument('--scan_dir', dest='scan_dir', type=str, action='store',
+                        help='Directory to scan for audiobooks',
+                        required=False)
     args = parser.parse_args()
 
     if args.static_path and not args.base_url or args.base_url and not args.static_path:
@@ -122,9 +125,9 @@ if __name__ == '__main__':
 
     if args.scan:
         books = Books()
-        books.scan_books()
+        books.scan_books(args.scan_dir)
         books.write_cache()
     elif args.static_path:
-        generate(args.static_path, args.base_url)
+        generate(args.static_path, args.base_url, args.scan_dir)
     else:
         app.run(host='127.0.0.1', port='8085', threaded=True)

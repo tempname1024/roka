@@ -86,7 +86,7 @@ class Books:
         now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         print('%s %s' % (now, msg))
 
-    def scan_books(self):
+    def scan_books(self, audiobook_path=None):
         '''
         Discover audiobooks under :root_path: and populate books object
 
@@ -94,7 +94,7 @@ class Books:
                 (existing content is not re-hashed)
         '''
         ex = self._get_path_hash_dict()
-        dirs = self._get_dirs(APP.config['ROOT_PATH'])
+        dirs = self._get_dirs(audiobook_path or APP.config['ROOT_PATH'])
 
         books = dict()
         for path in dirs:
@@ -145,7 +145,7 @@ class Books:
 
             # previous conditions met, we've found at least one track
             is_book = True
-            self._log(f)
+            self._log(os.path.join(path, f))
 
             # hash track (used as a key) and update folder hash
             file_hash = hashlib.md5()
