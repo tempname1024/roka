@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import shutil
 from flask import Flask, request, Response, render_template, send_file, templating
 from lib.books import Books
 from lib.util import check_auth, escape, generate_rss, read_cache
@@ -80,16 +81,27 @@ def generate():
     books = read_cache(json_path)
     index = my_render_template(app, 'index.html', books=books, static=True)
 
+    os.makedirs(static_path, exist_ok=True)
+
     indexfile = open(static_index_path, 'w')
     indexfile.write(index)
     indexfile.close()
 
-    for key in books.keys():
-        rss = generate_rss(base_url, key, books, static=True)
-        rss_path = os.path.join(static_path, key + '.xml')
+    for b_key, book in books.items():
+        rss = generate_rss(base_url, b_key, books, static=True)
+        rss_path = os.path.join(static_path, b_key + '.xml')
         rssfile = open(rss_path, 'w')
         rssfile.write(rss.decode('utf-8'))
         rssfile.close()
+
+        book_dir = os.path.join(static_path, b_key)
+        os.makedirs(book_dir, exist_ok=True)
+
+        for f_key, file in book['files'].items():
+            f_path = file['path']
+            copy_path = os.path.join(book_dir, f_key + '.mp3')
+            # print("File: {} {} {}".format(f_key, f_path, copy_path))
+            shutil.copyfile(f_path, copy_path)
 
 if __name__ == '__main__':
     desc = 'roka: listen to audiobooks with podcast apps via RSS'
