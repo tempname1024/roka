@@ -119,7 +119,7 @@ def generate_rss(base_url, book, books, static=False):
             track_list.append(track)
         else:
             # we have populated and unique track values, use those
-            key = lambda x: books[book]['files'][x]['track']
+            key = lambda x: int(books[book]['files'][x]['track'])
 
     # populate XML attribute values required by Apple podcasts
     for idx, f in enumerate(sorted(books[book]['files'], key=key)):
