@@ -13,11 +13,6 @@ ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 CACHE_PATH = os.path.join(ABS_PATH, '../', 'cache')
 JSON_PATH = os.path.join(CACHE_PATH, 'audiobooks.json')
 
-# use Flask's config parser, configparser would be hacky
-APP = Flask(__name__)
-if os.path.exists(os.path.join(ABS_PATH, '../', 'app.cfg')):
-    APP.config.from_pyfile(os.path.join(ABS_PATH, '../', 'app.cfg'))
-
 class Books:
     def __init__(self):
         '''
@@ -95,7 +90,7 @@ class Books:
                 (existing content is not re-hashed)
         '''
         ex = self._get_path_hash_dict()
-        dirs = self._get_dirs(audiobook_path or APP.config['ROOT_PATH'])
+        dirs = self._get_dirs(audiobook_path)
 
         books = dict()
         for path in dirs:

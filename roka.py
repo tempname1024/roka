@@ -3,14 +3,13 @@
 import argparse
 import os
 import shutil
+import json
 from flask import Flask, request, Response, render_template, send_file, templating
 from lib.books import Books
 from lib.util import check_auth, escape, generate_rss, read_cache
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
-if os.path.exists(os.path.join(abs_path, 'app.cfg')):
-    app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
 cache_path = os.path.join(abs_path, 'cache')
 json_path = os.path.join(cache_path, 'audiobooks.json')
 
@@ -78,7 +77,6 @@ def generate(static_path, base_url, audiobook_dirs):
 
     books = Books()
     books.scan_books(audiobook_dirs)
-    # TODO avoid writing and reading cache
     books.write_cache()
     books = read_cache(json_path)
     index = my_render_template(app, 'index.html', books=books, static=True)
@@ -102,7 +100,8 @@ def generate(static_path, base_url, audiobook_dirs):
         for f_key, file in book['files'].items():
             f_path = file['path']
             copy_path = os.path.join(book_dir, f_key + '.mp3')
-            shutil.copyfile(f_path, copy_path)
+            if not os.path.exists(copy_path):
+                shutil.copyfile(f_path, copy_path)
 
 if __name__ == '__main__':
     desc = 'roka: listen to audiobooks with podcast apps via RSS'
@@ -116,19 +115,30 @@ if __name__ == '__main__':
     parser.add_argument('--base_url', dest='base_url', type=str, action='store',
                         help='Base URL to use in static files',
                         required=False)
-    parser.add_argument('--scan_dir', dest='scan_dir', type=str, action='store',
-                        help='Directory to scan for audiobooks',
+    parser.add_argument('--config', dest='config', type=str, action='store',
+                        help='Json configuration instead of app.cfg',
                         required=False)
     args = parser.parse_args()
 
     if args.static_path and not args.base_url or args.base_url and not args.static_path:
         parser.error('--generate and --base_url must be included together')
 
+    if args.config:
+        class objectview(object):
+            def __init__(self, d):
+                self.__dict__ = d
+        config = objectview(json.loads(args.config))
+        app.config.from_object(config)
+    elif os.path.exists(os.path.join(abs_path, 'app.cfg')):
+        app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
+
+    root_path = os.path.expanduser(app.config['ROOT_PATH'])
+
     if args.scan:
         books = Books()
-        books.scan_books(args.scan_dir)
+        books.scan_books(root_path)
         books.write_cache()
     elif args.static_path:
-        generate(args.static_path, args.base_url, args.scan_dir)
+        generate(args.static_path, args.base_url, root_path)
     else:
         app.run(host='127.0.0.1', port='8085', threaded=True)
