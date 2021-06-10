@@ -28,7 +28,10 @@
     <table>
         <tr>
             <th>Title</th>
+            <th>Author</th>
+            {% if show_path %}
             <th>Path</th>
+            {% endif %}
             <th>Tracks</th>
             <th>Duration</th>
             <th>Size</th>
@@ -36,7 +39,10 @@
         {% for b, v in books.items() %}
         <tr>
             <td><a href="?a={{ b }}">{{ v['title']|escape }}</a></td>
+            <td>{{ v['author'] }}</td>
+            {% if show_path %}
             <td>{{ v['path']|escape }}</td>
+            {% endif %}
             <td>{{ v['files']|length }}</td>
             <td>{{ v['duration_str'] }}</td>
             <td>{{ v['size_str'] }}</td>

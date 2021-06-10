@@ -1,3 +1,4 @@
 ROOT_PATH = '/path/to/audiobooks'
 USERNAME = 'username'
 PASSWORD = 'password'
+SHOW_PATH = True
