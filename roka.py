@@ -114,7 +114,7 @@ if __name__ == '__main__':
                 self.__dict__ = d
         config = objectview(json.loads(args.config))
         app.config.from_object(config)
-    elif os.path.exists(os.path.join(abs_path, 'app.cfg')):
+    else:
         app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
 
     root_path = os.path.expanduser(app.config['ROOT_PATH'])
