@@ -5,6 +5,7 @@ import os
 import shutil
 import json
 from flask import Flask, request, Response, render_template, send_file, templating
+from flask.globals import _app_ctx_stack
 from lib.books import Books
 from lib.util import check_auth, escape, generate_rss, read_cache
 
@@ -52,26 +53,6 @@ def list_books():
 
         return render_template('index.html', books=books)
 
-# TODO does this really need to be here?
-def my_render_template(
-    app, template_name_or_list, **context
-) -> str:
-    """Renders a template from the template folder with the given
-    context.
-
-    :param template_name_or_list: the name of the template to be
-                                  rendered, or an iterable with template names
-                                  the first one existing will be rendered
-    :param context: the variables that should be available in the
-                    context of the template.
-    """
-    app.update_template_context(context)
-    return templating._render(
-        app.jinja_env.get_or_select_template(template_name_or_list),
-        context,
-        app,
-    )
-
 def generate(static_path, base_url, audiobook_dirs):
     static_index_path = os.path.join(static_path, 'index.html')
 
@@ -79,7 +60,11 @@ def generate(static_path, base_url, audiobook_dirs):
     books.scan_books(audiobook_dirs)
     books.write_cache()
     books = read_cache(json_path)
-    index = my_render_template(app, 'index.html', books=books, static=True)
+    # A bit of a hack, but push to the app context stack so we can render a
+    # template outside of a Flask request
+    _app_ctx_stack.push(app.app_context())
+    index = render_template('index.html', books=books, static=True)
+    _app_ctx_stack.pop()
 
     os.makedirs(static_path, exist_ok=True)
 
