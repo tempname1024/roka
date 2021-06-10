@@ -36,7 +36,7 @@
         {% for b, v in books.items() %}
         <tr>
             <td><a href="?a={{ b }}">{{ v['title']|escape }}</a></td>
-            <td>{{ v['author']|escape }}</td>
+            <td>{{ v['author'] }}</td>
             <td>{{ v['files']|length }}</td>
             <td>{{ v['duration_str'] }}</td>
             <td>{{ v['size_str'] }}</td>
