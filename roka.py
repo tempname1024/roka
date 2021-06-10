@@ -49,7 +49,8 @@ def list_books():
             form = {'WWW-Authenticate': 'Basic realm="o/"'}
             return Response('unauthorized', 401, form)
 
-        return render_template('index.html', books=books)
+        return render_template('index.html', books=books,
+                               show_path=app.config.get('SHOW_PATH', True))
 
 if __name__ == '__main__':
     desc = 'roka: listen to audiobooks with podcast apps via RSS'
