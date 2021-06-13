@@ -3,3 +3,4 @@ ROOT_PATH = '/path/to/audiobooks'
 BASE_URL = 'https://example.com/'
 USERNAME = 'username'
 PASSWORD = 'password'
+SHOW_PATH = True
