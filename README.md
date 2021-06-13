@@ -27,6 +27,23 @@ A screenshot of the web interface is [available here](screenshots/web.png).
     ./uwsgi.sh
     ```
 
+## Static generation
+
+In addition to running as a server, Roka can also generate a static index and
+set of RSS feeds that can be deployed to static hosting. This mode does not
+support a username and password.
+
+1. Run roka.py with `--generate <output_directory> --base_url <url>` parameters
+   where `<output_directory>` is a directory to place the generated site and
+   `<url>` is the base url where the static site will be uploaded to.
+
+   ```bash
+   ./roka.py --generate ./static --base_url "https://example.com/"
+   ```
+
+2. Upload the static site to any static web hosting. Make sure it is accessible
+   at the URL previously passed in as `--base_url`
+
 ## Design decisions
 
 1. Directories contained within config:ROOT_PATH are marked as audiobooks if and
