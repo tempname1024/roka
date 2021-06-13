@@ -97,16 +97,10 @@ if __name__ == '__main__':
     parser.add_argument('--generate', dest='static_path', type=str, action='store',
                         help='Output directory to generate static files',
                         required=False)
-    parser.add_argument('--base_url', dest='base_url', type=str, action='store',
-                        help='Base URL to use in static files',
-                        required=False)
     parser.add_argument('--config', dest='config', type=str, action='store',
                         help='Json configuration instead of app.cfg',
                         required=False)
     args = parser.parse_args()
-
-    if args.static_path and not args.base_url or args.base_url and not args.static_path:
-        parser.error('--generate and --base_url must be included together')
 
     if args.config:
         class objectview(object):
@@ -124,6 +118,6 @@ if __name__ == '__main__':
         books.scan_books(root_path)
         books.write_cache()
     elif args.static_path:
-        generate(args.static_path, args.base_url, root_path)
+        generate(args.static_path, app.config['BASE_URL'], root_path)
     else:
         app.run(host='127.0.0.1', port='8085', threaded=True)

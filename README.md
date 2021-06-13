@@ -33,16 +33,18 @@ In addition to running as a server, Roka can also generate a static index and
 set of RSS feeds that can be deployed to static hosting. This mode does not
 support a username and password.
 
-1. Run roka.py with `--generate <output_directory> --base_url <url>` parameters
-   where `<output_directory>` is a directory to place the generated site and
-   `<url>` is the base url where the static site will be uploaded to.
+1. Set `BASE_URL` in app.cfg to the base url where the static site will be
+   uploaded.
+
+2. Run roka.py with the `--generate <output_directory>` parameter, where
+   `<output_directory>` is an output directory to place the generated site.
 
    ```bash
-   ./roka.py --generate ./static --base_url "https://example.com/"
+   ./roka.py --generate ./static
    ```
 
-2. Upload the static site to any static web hosting. Make sure it is accessible
-   at the URL previously passed in as `--base_url`
+3. Upload the static site to any static web hosting. Make sure it is accessible
+   at the URL set as `BASE_URL`
 
 ## Design decisions
 
@@ -68,3 +70,8 @@ support a username and password.
 
 4. No rebuild endpoint exists; cache-affecting routines are run externally by
    calling roka.py directly
+
+5. Configuration can either be placed in a file named `app.cfg`, or it can be
+   overridden on the terminal by passing a JSON string as the `--config`
+   parameter. I.E. `./roka.py --generate ./static --config '{"ROOT_PATH":
+   "/path/to/audiobooks", "BASE_URL": "https://example.com/"}'`
