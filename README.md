@@ -37,7 +37,8 @@ support a username and password.
    uploaded.
 
 2. Run roka.py with the `--generate <output_directory>` parameter, where
-   `<output_directory>` is an output directory to place the generated site.
+   `<output_directory>` is an output directory to place the generated site. All
+   audiobook files will be copied to this location.
 
    ```bash
    ./roka.py --generate ./static
