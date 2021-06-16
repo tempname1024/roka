@@ -11,6 +11,10 @@ from lib.util import check_auth, escape, generate_rss, read_cache
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
+config_path = os.path.join(abs_path, 'app.cfg')
+config_exists = os.path.exists(config_path)
+if config_exists or __name__.startswith('uwsgi'):
+    app.config.from_pyfile(config_path)
 cache_path = os.path.join(abs_path, 'cache')
 json_path = os.path.join(cache_path, 'audiobooks.json')
 
@@ -108,9 +112,10 @@ if __name__ == '__main__':
             def __init__(self, d):
                 self.__dict__ = d
         config = objectview(json.loads(args.config))
+        # override app.cfg
         app.config.from_object(config)
-    else:
-        app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
+    elif not config_exists:
+        raise Exception(f"Config file '{config_path}' doesn't exist")
 
     root_path = os.path.expanduser(app.config['ROOT_PATH'])
 
