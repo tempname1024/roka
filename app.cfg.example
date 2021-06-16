@@ -1,4 +1,6 @@
 ROOT_PATH = '/path/to/audiobooks'
+# BASE_URL is only used for static generation
+BASE_URL = 'https://example.com/'
 USERNAME = 'username'
 PASSWORD = 'password'
 SHOW_PATH = True

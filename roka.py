@@ -2,13 +2,19 @@
 
 import argparse
 import os
-from flask import Flask, request, Response, render_template, send_file
+import shutil
+import json
+from flask import Flask, request, Response, render_template, send_file, templating
+from flask.globals import _app_ctx_stack
 from lib.books import Books
 from lib.util import check_auth, escape, generate_rss, read_cache
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
-app.config.from_pyfile(os.path.join(abs_path, 'app.cfg'))
+config_path = os.path.join(abs_path, 'app.cfg')
+config_exists = os.path.exists(config_path)
+if config_exists or __name__.startswith('uwsgi'):
+    app.config.from_pyfile(config_path)
 cache_path = os.path.join(abs_path, 'cache')
 json_path = os.path.join(cache_path, 'audiobooks.json')
 
@@ -40,7 +46,7 @@ def list_books():
         if not books.get(a):
             return 'book not found', 404
 
-        rss = generate_rss(request, books)
+        rss = generate_rss(request.base_url, a, books)
         return Response(rss, mimetype='text/xml')
 
     else:
@@ -52,17 +58,72 @@ def list_books():
         return render_template('index.html', books=books,
                                show_path=app.config.get('SHOW_PATH', True))
 
+def generate(static_path, base_url, audiobook_dirs):
+    static_index_path = os.path.join(static_path, 'index.html')
+
+    books = Books()
+    books.scan_books(audiobook_dirs)
+    books.write_cache()
+    books = read_cache(json_path)
+    # A bit of a hack, but push to the app context stack so we can render a
+    # template outside of a Flask request
+    _app_ctx_stack.push(app.app_context())
+    index = render_template('index.html', books=books, static=True)
+    _app_ctx_stack.pop()
+
+    os.makedirs(static_path, exist_ok=True)
+
+    indexfile = open(static_index_path, 'w')
+    indexfile.write(index)
+    indexfile.close()
+
+    for b_key, book in books.items():
+        rss = generate_rss(base_url, b_key, books, static=True)
+        rss_path = os.path.join(static_path, b_key + '.xml')
+        rssfile = open(rss_path, 'w')
+        rssfile.write(rss.decode('utf-8'))
+        rssfile.close()
+
+        book_dir = os.path.join(static_path, b_key)
+        os.makedirs(book_dir, exist_ok=True)
+
+        for f_key, file in book['files'].items():
+            f_path = file['path']
+            copy_path = os.path.join(book_dir, f_key + '.mp3')
+            if not os.path.exists(copy_path):
+                shutil.copyfile(f_path, copy_path)
+
 if __name__ == '__main__':
     desc = 'roka: listen to audiobooks with podcast apps via RSS'
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--scan', dest='scan', action='store_true',
                         help='scan audiobooks directory for new books',
                         required=False)
+    parser.add_argument('--generate', dest='static_path', type=str, action='store',
+                        help='Output directory to generate static files',
+                        required=False)
+    parser.add_argument('--config', dest='config', type=str, action='store',
+                        help='Json configuration instead of app.cfg',
+                        required=False)
     args = parser.parse_args()
+
+    if args.config:
+        class objectview(object):
+            def __init__(self, d):
+                self.__dict__ = d
+        config = objectview(json.loads(args.config))
+        # override app.cfg
+        app.config.from_object(config)
+    elif not config_exists:
+        raise Exception(f"Config file '{config_path}' doesn't exist")
+
+    root_path = os.path.expanduser(app.config['ROOT_PATH'])
 
     if args.scan:
         books = Books()
-        books.scan_books()
+        books.scan_books(root_path)
         books.write_cache()
+    elif args.static_path:
+        generate(args.static_path, app.config['BASE_URL'], root_path)
     else:
         app.run(host='127.0.0.1', port='8085', threaded=True)

@@ -27,6 +27,26 @@ A screenshot of the web interface is [available here](screenshots/web.png).
     ./uwsgi.sh
     ```
 
+## Static generation
+
+In addition to running as a server, Roka can also generate a static index and
+set of RSS feeds that can be deployed to static hosting. This mode does not
+support a username and password.
+
+1. Set `BASE_URL` in app.cfg to the base url where the static site will be
+   uploaded.
+
+2. Run roka.py with the `--generate <output_directory>` parameter, where
+   `<output_directory>` is an output directory to place the generated site. All
+   audiobook files will be copied to this location.
+
+   ```bash
+   ./roka.py --generate ./static
+   ```
+
+3. Upload the static site to any static web hosting. Make sure it is accessible
+   at the URL set as `BASE_URL`
+
 ## Design decisions
 
 1. Directories contained within config:ROOT_PATH are marked as audiobooks if and
@@ -51,3 +71,8 @@ A screenshot of the web interface is [available here](screenshots/web.png).
 
 4. No rebuild endpoint exists; cache-affecting routines are run externally by
    calling roka.py directly
+
+5. Configuration can either be placed in a file named `app.cfg`, or it can be
+   overridden on the terminal by passing a JSON string as the `--config`
+   parameter. I.E. `./roka.py --generate ./static --config '{"ROOT_PATH":
+   "/path/to/audiobooks", "BASE_URL": "https://example.com/"}'`
