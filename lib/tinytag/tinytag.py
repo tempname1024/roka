@@ -34,7 +34,7 @@
 from __future__ import print_function
 
 import re
-from collections import MutableMapping
+from collections.abc import MutableMapping
 import codecs
 from functools import reduce
 import struct
