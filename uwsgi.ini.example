@@ -5,3 +5,4 @@ threads   = 4
 wsgi-file = roka.py
 callable  = app
 master    = true
+wsgi-file = /home/example/roka/roka.py
