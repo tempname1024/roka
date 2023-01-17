@@ -5,7 +5,7 @@ import os
 import shutil
 import json
 from flask import Flask, request, Response, render_template, send_file, templating
-from flask.globals import _app_ctx_stack
+from flask.globals import app_ctx
 from lib.books import Books
 from lib.util import check_auth, escape, generate_rss, read_cache
 
@@ -23,30 +23,30 @@ def list_books():
     '''
     Book listing and audiobook RSS/file download
 
-    :a: audiobook hash; if provided without :f: (file) return RSS
+    :a: audiobook hash; if provided without :f: (track) return RSS
     :f: file hash; requires associated audiobook (:a:) to download
 
     Listing of audiobooks returned if no params provided
     '''
     books = read_cache(json_path)
 
-    a = request.args.get('a') # audiobook hash
-    f = request.args.get('f') # file hash
+    book = request.args.get('a')  # audiobook hash
+    track = request.args.get('f') # file hash
 
     # audiobook and file parameters provided: serve up file
-    if a and f:
-        if not books.get(a) or not books[a]['files'].get(f):
+    if book and track:
+        if not books.get(book) or not books[book]['files'].get(track):
             return 'book or file not found', 404
 
-        f_path = books[a]['files'][f]['path']
-        return send_file(f_path, conditional=True)
+        track_path = books[book]['files'][track]['path']
+        return send_file(track_path, conditional=True)
 
     # serve up audiobook RSS feed; only audiobook hash provided
-    elif a:
-        if not books.get(a):
+    elif book:
+        if not books.get(book):
             return 'book not found', 404
 
-        rss = generate_rss(request.base_url, a, books)
+        rss = generate_rss(request.base_url, book, books)
         return Response(rss, mimetype='text/xml')
 
     else:
@@ -67,9 +67,10 @@ def generate(static_path, base_url, audiobook_dirs):
     books = read_cache(json_path)
     # A bit of a hack, but push to the app context stack so we can render a
     # template outside of a Flask request
-    _app_ctx_stack.push(app.app_context())
-    index = render_template('index.html', books=books, static=True)
-    _app_ctx_stack.pop()
+    with app.app_context():
+        app_ctx.push()
+        index = render_template('index.html', books=books, static=True)
+        app_ctx.pop()
 
     os.makedirs(static_path, exist_ok=True)
 
